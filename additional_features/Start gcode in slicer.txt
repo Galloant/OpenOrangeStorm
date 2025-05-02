@@ -1,0 +1,39 @@
+;Giga zoned hot bed control
+
+;Case 1
+	M140 S0
+	{if (min(print_bed_max[0], first_layer_print_min[0] + 32) - 32) < 405 && (max(0, first_layer_print_min[1])) < 402.5}
+		SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_0_active VALUE=1
+           	{if ((min(print_bed_max[0], max(first_layer_print_min[0] + 32, first_layer_print_max[0])))) > 405}
+			SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_1_active VALUE=1
+		{endif}
+		{if ((first_layer_print_max[1])) > 402.5}
+			SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_3_active VALUE=1
+		{endif}
+		{if ((min(print_bed_max[0], max(first_layer_print_min[0] + 32, first_layer_print_max[0])))) > 405 && ((first_layer_print_max[1])) > 402.5}
+			SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_2_active VALUE=1
+		{endif}
+	{endif}
+
+;Case 2
+	{if (min(print_bed_max[0], first_layer_print_min[0] + 32) - 32) < 405 && (max(0, first_layer_print_min[1])) > 402.5}
+		SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_3_active VALUE=1
+		{if ((min(print_bed_max[0], max(first_layer_print_min[0] + 32, first_layer_print_max[0])))) > 405}
+			SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_2_active VALUE=1
+		{endif}
+	{endif}
+
+;Case 3
+	{if (min(print_bed_max[0], first_layer_print_min[0] + 32) - 32) > 405 && (max(0, first_layer_print_min[1])) < 402.5}
+		SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_1_active VALUE=1
+		{if ((first_layer_print_max[1])) > 402.5}
+			SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_2_active VALUE=1
+		{endif}
+	{endif}
+
+;Case 4
+	{if (min(print_bed_max[0], first_layer_print_min[0] + 32) - 32) > 405 && (max(0, first_layer_print_min[1])) > 402.5}
+		SET_GCODE_VARIABLE MACRO=SET_BED_HEATERS VARIABLE=zone_2_active VALUE=1
+		{endif}
+
+START_PRINT BED_TEMP={bed_temperature_initial_layer[current_extruder]} EXTRUDER_TEMP={nozzle_temperature_initial_layer[current_extruder]}
