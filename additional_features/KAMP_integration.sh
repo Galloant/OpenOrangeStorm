@@ -119,6 +119,12 @@ function KAMP_tidyup {
 			ln -s $KAMP/Voron_Purge.cfg $configKAMP/
 		fi	
 		
+		#fix directories for KAMP
+		sed -i 's/[include KAMP_Settings.cfg]/[include ./KAMP/KAMP_Settings.cfg]/g' $config/printer.cfg
+		sed -i 's/[include ./KAMP/Smart_Park.cfg]//g' $config/printer.cfg
+		sed -i 's/[include ./KAMP/Line_Purge.cfg]//g' $config/printer.cfg
+
+		
 		echo "All done!"
 		sleep 2
 	
