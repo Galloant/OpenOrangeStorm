@@ -663,6 +663,10 @@ install_configs() {
     fi
 }
 
+probe_timeout_fix() {
+sed -i 's/[TRSYNC_TIMEOUT = 0.025/TRSYNC_TIMEOUT = 0.050/g' ~/klipper/klippy/mcu.py
+}
+
 wifi_config() {
 sudo nmtui
 }
@@ -733,6 +737,7 @@ Commands:
   crowsnest_fix              Install webcam FPS fix.
   base_image_config          Apply base configuration for ZNP-K1 Compiled Image (Not for release images).
   armbian_resize             Resize the active Armbian partition (for eMMC > 8GB).
+  probe_timeout_fix			 Fixes the probe timeout error (Only for the Orange Storm Giga)
 
 EOF
 }
@@ -821,6 +826,7 @@ else
         crowsnest_fix) crowsnest_fix ;;
         base_image_config) base_image_config ;;
         armbian_resize) armbian_resize ;;
+		probe_timeout_fix) probe_timeout_fix ;;
         *) echo -e "${G}Invalid command. Please try again.${NC}" ;;
     esac
 fi
