@@ -139,9 +139,9 @@ if [[ "$mcu_choice" == "RP2040" ]] || [[ "$mcu_choice" == "All" ]]; then
 	auto_updater() {
 		echo "Trying to put the RP2040 into bootloader mode..."
 		
-		sudo M112 > ~/printer_data/comms/klippy.serial 
+		echo M112 > ~/printer_data/comms/klippy.serial 
 		sleep 1
-		sudo FIRMWARE_RESTART > ~/printer_data/comms/klippy.serial
+		echo FIRMWARE_RESTART > ~/printer_data/comms/klippy.serial
 		sleep 1
 		sudo systemctl stop klipper
 	
