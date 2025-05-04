@@ -793,7 +793,7 @@ done
 
 # Main Script Logic
 if [ -z "$1" ]; then
-
+	run_fixes
     set_current_branch
     update_repo
     
