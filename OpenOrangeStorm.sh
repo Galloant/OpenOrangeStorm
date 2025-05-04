@@ -9,7 +9,7 @@ ANDROID_RULE_INSTALLER="${HOME}/OpenOrangeStorm/img-config/adb-automount.sh"
 CROWSNEST_FIX_INSTALLER="${HOME}/OpenOrangeStorm/img-config/crowsnest-lag-fix.sh"
 BASE_IMAGE_INSTALLER="${HOME}/OpenOrangeStorm/img-config/base_image_configuration.sh"
 
-FLAG_FILE="/boot/.OpenOrangeStorm.txt"
+
 MODEL_FROM_FLAG=$(grep -E '^GIGA|^giga' "$FLAG_FILE")
 KERNEL_FROM_FLAG=$(grep 'Linux' "$FLAG_FILE" | awk '{split($3,a,"-"); print a[1]}')
 
@@ -244,6 +244,8 @@ advanced_more() {
         echo -e "6) Base ZNP-K1 Compiled Image Config (NOT for OpenOrangeStorm)"
         echo ""
         echo -e "7) Change Machine Model / Board Version / Motor Current"
+		echo ""
+        echo -e "8) Probe Timeout Fix (Only for Orange Storm Giga)"
         echo -e "----------------------------------------------------------${NC}"
         echo ""
         echo -e "(${Y} B ${NC}) Back to Main Menu"
@@ -259,6 +261,7 @@ advanced_more() {
             5) toggle_branch;;
             6) base_image_config;;
             7) $HOME/OpenOrangeStorm/img-config/set-printer-model.sh; exit 0;;
+			8) probe_timeout_fix;;
             b) return;;  # Return to the main menu
             *) echo -e "${R}Invalid choice, please try again.${NC}";;
         esac
@@ -663,6 +666,10 @@ install_configs() {
     fi
 }
 
+probe_timeout_fix() {
+  sed -i "s|TRSYNC_TIMEOUT = 0.025|TRSYNC_TIMEOUT = 0.050|g" ~/klipper/klippy/mcu.py
+}
+
 wifi_config() {
 sudo nmtui
 }
@@ -733,6 +740,7 @@ Commands:
   crowsnest_fix              Install webcam FPS fix.
   base_image_config          Apply base configuration for ZNP-K1 Compiled Image (Not for release images).
   armbian_resize             Resize the active Armbian partition (for eMMC > 8GB).
+  probe_timeout_fix			 Fixes the probe timeout error (Only for the Orange Storm Giga)
 
 EOF
 }
@@ -785,7 +793,7 @@ done
 
 # Main Script Logic
 if [ -z "$1" ]; then
-    run_fixes
+	run_fixes
     set_current_branch
     update_repo
     
@@ -821,6 +829,7 @@ else
         crowsnest_fix) crowsnest_fix ;;
         base_image_config) base_image_config ;;
         armbian_resize) armbian_resize ;;
+		probe_timeout_fix) probe_timeout_fix ;;
         *) echo -e "${G}Invalid command. Please try again.${NC}" ;;
     esac
 fi

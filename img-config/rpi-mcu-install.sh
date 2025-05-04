@@ -8,12 +8,13 @@ if [[ -z $1 ]]; then
     echo ""
     echo "Choose the MCU(s) to update:"
     echo ""
-    select mcu_choice in "STM32" "Virtual RPi" "Pico-based USB Accelerometer" "All" "Cancel"; do
+    select mcu_choice in "STM32" "RP2040" "Virtual RPi" "Pico-based USB Accelerometer" "All" "Cancel"; do
     case $mcu_choice in
         STM32 ) echo "Updating STM32 MCU..."; break;;
-        Virtual\ RPi ) echo "Updating Virtual RPi MCU..."; break;;
+        RP2040) echo "Updating RP2040 (printhead) MCU..."; break;;
+		Virtual\ RPi ) echo "Updating Virtual RPi MCU..."; break;;
         Pico-based\ USB\ Accelerometer ) echo "Updating Pico-based USB Accelerometer..."; break;;
-        All ) echo "Starting update process for STM32, Virtual RPi MCU and Pico USB Accelerometer"; break;;
+        All ) echo "Starting update process for STM32, RP2040, Virtual RPi MCU and Pico USB Accelerometer"; break;;
             Cancel ) echo "Update canceled."; exit;;
         esac
     done
@@ -21,6 +22,10 @@ else
     # Use the first argument as the MCU choice
     mcu_choice=$1
 fi
+
+# Installing Katapult
+cd ~/
+git clone https://github.com/Arksine/katapult
 
 # Update Klipper repository
 cd ~/klipper/ && git pull origin master
@@ -32,60 +37,151 @@ if [[ "$mcu_choice" == "STM32" ]] || [[ "$mcu_choice" == "All" ]]; then
     make clean
     cp ~/OpenOrangeStorm/mcu-firmware/mcu.config ~/klipper/.config
     make
+	
+	
+	auto_updater() {
+		echo "Trying to put the STM32 into bootloader mode..."
+		
+		#Trying to get the MCU unbound
+		echo M112 > ~/printer_data/comms/klippy.serial 
+		sleep 1
+		echo FIRMWARE_RESTART > ~/printer_data/comms/klippy.serial
+		sleep 1
+		systemctl stop klipper
+	
+		echo "Checking if succeeded..."
+		output=$(cd ~/katapult/scripts && python3 flash_can.py -i can0 -q)
+	
+		# Display the output to the user
+		echo "$output"
+		
+		# Prompt the user to input a UUID
+		read -p "Please enter the UUID that is the STM32 (usually the first one): " uuid
+		
+		# Confirm the selected UUID
+		echo "You selected the UUID: $uuid"
+		
+		python3 flash_can.py -i can0 -u $uuid -f ~/klipper/out/klipper.bin
+		
+		return
+		}
+	
 
-    # Check if the MCU boots using the alternative method
-    if grep -q "/usr/local/bin/gpio_set.sh" "/etc/rc.local"; then
-        echo "Detected MCU running the Alternative method! Running headless flash..."
-        if [ -f "$MCU_SWFLASH_ALT" ]; then
-            "$MCU_SWFLASH_ALT"
-        else
-            echo "Error: Alternate MCU flash script not found."
-        fi
-    else
-        # Regular update through microSD card
-        # Create the 'Firmware' directory if it doesn't exist
-        mkdir -p ~/printer_data/config/Firmware
+	manual_update() {
+		
+			# Regular update through microSD card
+			# Create the 'Firmware' directory if it doesn't exist
+			mkdir -p ~/printer_data/config/Firmware
+	
+			# Remove old files in previous parent directory
+			rm ~/printer_data/config/X_4.bin > /dev/null 2>&1
+			rm ~/printer_data/config/elegoo_k1.bin > /dev/null 2>&1
+			rm ~/printer_data/config/ZNP_GIGA.bin > /dev/null 2>&1
+	
+			cp ~/klipper/out/klipper.bin ~/printer_data/config/Firmware/ZNP_GIGA.bin
+	
+			clear
+			# Display instructions for downloading the firmware
+			ip_address=$(hostname -I | awk '{print $1}')
+			echo ""
+			echo -e "\nTo download firmware files:"
+			echo "1. Visit: http://$ip_address/#/configure"
+			echo "2. Click the Firmware folder in the left Config list"
+			echo "3. Right-click and Download 'ZNP_GIGA.bin'"
+			echo "   Then copy to a FAT32 formatted microSD card."
+			echo ""
+			echo -e "\nTo complete the update:"
+			echo "1. After this script completes, power off the printer" 
+			echo "   Then insert the microSD card."
+			echo "2. Power on, and check the MCU version in Fluidd's system tab."
+			echo "3. The '.bin' file on the microSD will be renamed to..." 
+			echo "   '.CUR' if the update was successful."
+			echo ""
+			echo -e "\nFor printers without external microSD slots:"
+			echo -e "Visit the OpenOrangeStorm wiki for info (if not already done)\n"
+			echo -e "https://github.com/OpenNeptune3D/OpenOrangeStorm/wiki"
+			echo ""
+			echo -e "\nHave you downloaded the bin files and are ready to continue? (y)"
+			read continue_choice
+			if [[ "$continue_choice" =~ ^[Yy]$ ]]; then
+				echo ""
+				if [[ "$mcu_choice" == "STM32" ]]; then
+					echo "Power-off the machine and insert the microSD card."
+					sleep 4
+					# Exit only if the selected choice was specifically STM32, not "All"
+					exit
+				fi
+			fi
+		}
 
-        # Remove old files in previous parent directory
-        rm ~/printer_data/config/X_4.bin > /dev/null 2>&1
-        rm ~/printer_data/config/elegoo_k1.bin > /dev/null 2>&1
-        rm ~/printer_data/config/ZNP_GIGA.bin > /dev/null 2>&1
+	if auto_updater; then
+		echo "Auto update for the STM32 was a success!!"
+		echo ""
+		echo "continuing..."
+		sleep 2
+	else
+		echo "Auto update didn't work..."
+		echo ""
+		echo "Trying the SD-card method..."
+		sleep 2
+		manual_update
+	fi	
+fi
 
-        cp ~/klipper/out/klipper.bin ~/printer_data/config/Firmware/ZNP_GIGA.bin
+if [[ "$mcu_choice" == "RP2040" ]] || [[ "$mcu_choice" == "All" ]]; then
+    clear
+    echo "Proceeding with RP2040 (printhead) MCU Update..."
+    make clean
+    cp ~/OpenOrangeStorm/mcu-firmware/printhead.config ~/klipper/.config
+    make
+	
+	
+	auto_updater() {
+		echo "Trying to put the RP2040 into bootloader mode..."
+		
+		echo M112 > ~/printer_data/comms/klippy.serial 
+		sleep 1
+		echo FIRMWARE_RESTART > ~/printer_data/comms/klippy.serial
+		sleep 1
+		sudo systemctl stop klipper
+	
+		echo "Checking if succeeded..."
+		output=$(cd ~/katapult/scripts && python3 flash_can.py -i can0 -q)
+	
+		# Display the output to the user
+		echo "$output"
+		
+		# Prompt the user to input a UUID
+		read -p "Please enter the UUID that is the RP2040 (usually the second one): " uuid
+		
+		# Confirm the selected UUID
+		echo "You selected the UUID: $uuid"
+		
+		python3 flash_can.py -i can0 -u $uuid -f ~/klipper/out/klipper.bin
+		
+		return
+		}
+	
 
-        clear
-        # Display instructions for downloading the firmware
-        ip_address=$(hostname -I | awk '{print $1}')
-        echo ""
-        echo -e "\nTo download firmware files:"
-        echo "1. Visit: http://$ip_address/#/configure"
-        echo "2. Click the Firmware folder in the left Config list"
-        echo "3. Right-click and Download 'ZNP_GIGA.bin'"
-        echo "   Then copy to a FAT32 formatted microSD card."
-        echo ""
-        echo -e "\nTo complete the update:"
-        echo "1. After this script completes, power off the printer" 
-        echo "   Then insert the microSD card."
-        echo "2. Power on, and check the MCU version in Fluidd's system tab."
-        echo "3. The '.bin' file on the microSD will be renamed to..." 
-        echo "   '.CUR' if the update was successful."
-        echo ""
-        echo -e "\nFor printers without external microSD slots:"
-        echo -e "Visit the OpenOrangeStorm wiki for info (if not already done)\n"
-        echo -e "https://github.com/OpenNeptune3D/OpenOrangeStorm/wiki"
-        echo ""
-        echo -e "\nHave you downloaded the bin files and are ready to continue? (y)"
-        read continue_choice
-        if [[ "$continue_choice" =~ ^[Yy]$ ]]; then
-            echo ""
-            if [[ "$mcu_choice" == "STM32" ]]; then
-                echo "Power-off the machine and insert the microSD card."
-                sleep 4
-                # Exit only if the selected choice was specifically STM32, not "All"
-                exit
-            fi
-        fi
-    fi
+	if auto_updater; then
+		echo "Auto update for the RP2040 was a success!!"
+		echo ""
+		sleep 2
+	else
+		cp ~/klipper/out/klipper.bin ~/printer_data/config/Firmware/RP2040.bin
+		echo "Something didn't go as planned..."
+		echo "Either retry, or put the firmware on manually"
+		echo "Read the documentation how to do that!"
+		echo "We've copied the firmware into ~/printer_data/config/Firmware/RP2040.bin"
+		
+		seconds=20
+
+		while [ $seconds -ge 0 ]; do
+			echo -ne "$seconds... "
+			sleep 1
+			seconds=$((seconds - 1))
+		done
+	fi	
 fi
 
 # Update procedure for Pico-based Accelerometer
