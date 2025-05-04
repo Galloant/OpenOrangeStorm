@@ -245,7 +245,7 @@ advanced_more() {
         echo ""
         echo -e "7) Change Machine Model / Board Version / Motor Current"
 		echo ""
-        echo -e "8) Probe Timeout Fix"
+        echo -e "8) Probe Timeout Fix (Only for Orange Storm Giga)"
         echo -e "----------------------------------------------------------${NC}"
         echo ""
         echo -e "(${Y} B ${NC}) Back to Main Menu"
@@ -667,7 +667,7 @@ install_configs() {
 }
 
 probe_timeout_fix() {
-sed -i 's/[TRSYNC_TIMEOUT = 0.025/TRSYNC_TIMEOUT = 0.050/g' ~/klipper/klippy/mcu.py
+  sed -i "s|TRSYNC_TIMEOUT = 0.025|TRSYNC_TIMEOUT = 0.050|g" ~/klipper/klippy/mcu.py
 }
 
 wifi_config() {

@@ -14,7 +14,7 @@ if [[ -z $1 ]]; then
         RP2040) echo "Updating RP2040 (printhead) MCU..."; break;;
 		Virtual\ RPi ) echo "Updating Virtual RPi MCU..."; break;;
         Pico-based\ USB\ Accelerometer ) echo "Updating Pico-based USB Accelerometer..."; break;;
-        All ) echo "Starting update process for STM32, Virtual RPi MCU and Pico USB Accelerometer"; break;;
+        All ) echo "Starting update process for STM32, RP2040, Virtual RPi MCU and Pico USB Accelerometer"; break;;
             Cancel ) echo "Update canceled."; exit;;
         esac
     done
@@ -22,6 +22,10 @@ else
     # Use the first argument as the MCU choice
     mcu_choice=$1
 fi
+
+# Installing Katapult
+cd ~/
+git clone https://github.com/Arksine/katapult
 
 # Update Klipper repository
 cd ~/klipper/ && git pull origin master
@@ -108,7 +112,6 @@ if [[ "$mcu_choice" == "STM32" ]] || [[ "$mcu_choice" == "All" ]]; then
 					exit
 				fi
 			fi
-		fi
 		}
 
 	if auto_updater; then
@@ -136,11 +139,11 @@ if [[ "$mcu_choice" == "RP2040" ]] || [[ "$mcu_choice" == "All" ]]; then
 	auto_updater() {
 		echo "Trying to put the RP2040 into bootloader mode..."
 		
-		echo M112 > ~/printer_data/comms/klippy.serial 
+		sudo M112 > ~/printer_data/comms/klippy.serial 
 		sleep 1
-		echo FIRMWARE_RESTART > ~/printer_data/comms/klippy.serial
+		sudo FIRMWARE_RESTART > ~/printer_data/comms/klippy.serial
 		sleep 1
-		systemctl stop klipper
+		sudo systemctl stop klipper
 	
 		echo "Checking if succeeded..."
 		output=$(cd ~/katapult/scripts && python3 flash_can.py -i can0 -q)
@@ -161,11 +164,23 @@ if [[ "$mcu_choice" == "RP2040" ]] || [[ "$mcu_choice" == "All" ]]; then
 	
 
 	if auto_updater; then
-		echo "Auto update for the STM32 was a success!!"
+		echo "Auto update for the RP2040 was a success!!"
 		echo ""
-		echo "That's a problem..."
 		sleep 2
-	
+	else
+		cp ~/klipper/out/klipper.bin ~/printer_data/config/Firmware/RP2040.bin
+		echo "Something didn't go as planned..."
+		echo "Either retry, or put the firmware on manually"
+		echo "Read the documentation how to do that!"
+		echo "We've copied the firmware into ~/printer_data/config/Firmware/RP2040.bin"
+		
+		seconds=20
+
+		while [ $seconds -ge 0 ]; do
+			echo -ne "$seconds... "
+			sleep 1
+			seconds=$((seconds - 1))
+		done
 	fi	
 fi
 
