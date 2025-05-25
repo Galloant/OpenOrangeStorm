@@ -157,7 +157,7 @@ if [[ "$mcu_choice" == "RP2040" ]] || [[ "$mcu_choice" == "All" ]]; then
 		# Confirm the selected UUID
 		echo "You selected the UUID: $uuid"
 		
-		python3 flash_can.py -i can0 -u $uuid -f ~/klipper/out/klipper.bin
+		python3 ~/katapult/scripts/flash_can.py -i can0 -u $uuid -f ~/klipper/out/klipper.bin
 		
 		return
 		}
