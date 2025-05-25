@@ -668,6 +668,9 @@ install_configs() {
 
 probe_timeout_fix() {
   sed -i "s|TRSYNC_TIMEOUT = 0.025|TRSYNC_TIMEOUT = 0.050|g" ~/klipper/klippy/mcu.py
+  
+  echo "Successfully fixed the timeout issue!"
+  sleep 2
 }
 
 wifi_config() {

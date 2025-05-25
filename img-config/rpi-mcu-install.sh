@@ -30,6 +30,9 @@ git clone https://github.com/Arksine/katapult
 # Update Klipper repository
 cd ~/klipper/ && git pull origin master
 
+# Install python serial tools
+sudo apt install python3-serial
+
 # Update procedure for STM32 MCU
 if [[ "$mcu_choice" == "STM32" ]] || [[ "$mcu_choice" == "All" ]]; then
     clear
@@ -118,7 +121,9 @@ if [[ "$mcu_choice" == "STM32" ]] || [[ "$mcu_choice" == "All" ]]; then
 		echo "Auto update for the STM32 was a success!!"
 		echo ""
 		echo "continuing..."
-		sleep 2
+		echo ""
+		echo "If you plan on updateing the printhead MCU as well after this, restart the board!"
+		sleep 4
 	else
 		echo "Auto update didn't work..."
 		echo ""
