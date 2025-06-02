@@ -20,6 +20,7 @@ DISPLAY_CONNECTOR_DIR="${HOME}/display_connector"
 
 current_branch=""
 
+
 # Command line arguments
 model_key=""
 motor_current=""
