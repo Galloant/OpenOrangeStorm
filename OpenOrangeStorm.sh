@@ -9,7 +9,7 @@ ANDROID_RULE_INSTALLER="${HOME}/OpenOrangeStorm/img-config/adb-automount.sh"
 CROWSNEST_FIX_INSTALLER="${HOME}/OpenOrangeStorm/img-config/crowsnest-lag-fix.sh"
 BASE_IMAGE_INSTALLER="${HOME}/OpenOrangeStorm/img-config/base_image_configuration.sh"
 
-
+FLAG_FILE="/boot/.OpenOrangeStorm.txt"
 MODEL_FROM_FLAG=$(grep -E '^GIGA|^giga' "$FLAG_FILE")
 KERNEL_FROM_FLAG=$(grep 'Linux' "$FLAG_FILE" | awk '{split($3,a,"-"); print a[1]}')
 
