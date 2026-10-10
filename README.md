@@ -10,7 +10,7 @@
 
 | 📥 Download | ⚙️ Installation | 💬 Discord Server |
 |---------------------------------------------|---------------------------------------------|--------------------------------------------|
-| [ALPHA Releases](https://github.com/OpenNeptune3D/OpenOrangeStorm/releases/) | [Wiki](https://github.com/OpenNeptune3D/OpenOrangeStorm/wiki) | [Discord](https://discord.com/invite/X6kwchT6WM) |
+| [ALPHA Releases]([https://github.com/Galloant/OpenOrangeStorm/releases/tag/V1.0.0]) | [Wiki](https://github.com/OpenNeptune3D/OpenOrangeStorm/wiki) | [Discord](https://discord.com/invite/X6kwchT6WM) |
 
 </div>
 
